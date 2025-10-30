@@ -51,10 +51,12 @@ def get_jira_raw(issue_key: str) -> str:
 
 
 @mcp.tool()
-def get_jira(issue_key: str) -> str:
+def get_jira(issue_key: str, extra_fields: list = []) -> str:
     """
     Fetch the Jira issue identified by 'issue_key' using jira_client,
-    then return a Markdown string: "# ISSUE-KEY: summary\n\ndescription"
+    then return a Markdown string: "# ISSUE-KEY: summary\n\ndescription".
+    If 'extra_fields' were provided, they will be added to the returned
+    string: "# ISSUE: summary\n\ndescription\n\nkey1 = value1\n..."
     """
     issue = _get_jira(issue_key)
 
@@ -62,7 +64,15 @@ def get_jira(issue_key: str) -> str:
     summary = issue.fields.summary or ""
     description = issue.fields.description or ""
 
-    return f"# {issue_key}: {summary}\n\n{description}"
+    output = f"# {issue_key}: {summary}\n\n{description}"
+
+    # If extra fields were requested, add the to the output as well
+    if extra_fields:
+        output += "\n"
+        for k in extra_fields:
+            output += f"\n{k} = {str(getattr(issue.fields, k, None))}"
+
+    return output
 
 
 def to_markdown(obj):
@@ -77,8 +87,9 @@ def to_markdown(obj):
 
 
 @mcp.tool()
-def search_issues(jql: str, max_results: int = 100) -> str:
-    """Search issues using JQL."""
+def search_issues(jql: str, max_results: int = 100, extra_fields : list = []) -> str:
+    """Search issues using JQL.
+    You can also provide 'extra_fields' parameter with a list of additional fields to return."""
     try:
         issues = jira_client.search_issues(jql, maxResults=max_results)
         # Extract only essential fields to avoid token limit issues
@@ -104,6 +115,10 @@ def search_issues(jql: str, max_results: int = 100) -> str:
                 "updated": issue.fields.updated,
                 "description": issue.fields.description,
             }
+            if extra_fields:
+                for k in extra_fields:
+                    v = issue.raw["fields"][k] if k in issue.raw["fields"] else None
+                    simplified[k] = v
             simplified_issues.append(simplified)
         return to_markdown(simplified_issues)
     except Exception as e:
