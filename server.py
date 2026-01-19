@@ -338,7 +338,7 @@ def create_issue(
             issue_dict["assignee"] = {"name": assignee}
 
         if priority:
-            issue_dict["priority"] = ({"name": priority},)
+            issue_dict["priority"] = {"name": priority}
 
         # Merge extra fields
         if extra_fields:
