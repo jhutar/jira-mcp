@@ -310,7 +310,7 @@ def create_issue(
     summary: str,
     description: str = "",
     issue_type: str = "Task",
-    priority: str = "Medium",
+    priority: str = None,
     assignee: str = None,
     extra_fields: dict = {},
 ) -> str:
@@ -332,11 +332,13 @@ def create_issue(
             "summary": summary,
             "description": description,
             "issuetype": {"name": issue_type},
-            "priority": {"name": priority},
         }
 
         if assignee:
             issue_dict["assignee"] = {"name": assignee}
+
+        if priority:
+            issue_dict["priority"] = {"name": priority},
 
         # Merge extra fields
         if extra_fields:
