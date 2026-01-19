@@ -8,7 +8,6 @@ from jira import JIRA
 from fastmcp import FastMCP
 from fastapi import HTTPException
 import json
-import logging
 
 ## Custom fields IDs
 QA_CONTACT_FID = "customfield_12315948"
@@ -339,7 +338,7 @@ def create_issue(
             issue_dict["assignee"] = {"name": assignee}
 
         if priority:
-            issue_dict["priority"] = {"name": priority},
+            issue_dict["priority"] = ({"name": priority},)
 
         # Merge extra fields
         if extra_fields:
@@ -354,10 +353,11 @@ def create_issue(
 @mcp.tool(enabled=ENABLE_WRITE)
 def update_issue(
     issue_key: str,
-    summary: str = None,
-    description: str = None,
-    priority: str = None,
-    assignee: str = None,
+    summary: str | None = None,
+    description: str | None = None,
+    priority: str | None = None,
+    assignee: str | None = None,
+    extra_fields: dict = {},
 ) -> str:
     """Update an existing Jira issue."""
     try:
@@ -372,6 +372,10 @@ def update_issue(
             update_dict["priority"] = {"name": priority}
         if assignee:
             update_dict["assignee"] = {"name": assignee}
+
+        # Merge extra fields
+        if extra_fields:
+            update_dict.update(extra_fields)
 
         if update_dict:
             issue.update(fields=update_dict)

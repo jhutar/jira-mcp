@@ -2,7 +2,7 @@
 
 import pytest
 import os
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 from fastapi import HTTPException
 import json
 
@@ -380,6 +380,23 @@ class TestWriteOperations:
 
         assert "Updated issue TEST-123 successfully" in result
         sample_issue.update.assert_called_once()
+
+    @patch("server.ENABLE_WRITE", True)
+    def test_update_issue_with_extra_fields(self, mock_jira_client, sample_issue):
+        mock_jira_client.issue.return_value = sample_issue
+
+        extra_fields = {
+            "customfield_123": "value",
+            "labels": ["label1"],
+        }
+
+        result = server.update_issue.fn(issue_key="TEST-123", extra_fields=extra_fields)
+
+        assert "Updated issue TEST-123 successfully" in result
+        sample_issue.update.assert_called_once()
+        call_args = sample_issue.update.call_args[1]["fields"]
+        assert call_args["customfield_123"] == "value"
+        assert call_args["labels"] == ["label1"]
 
     @patch("server.ENABLE_WRITE", True)
     def test_add_comment_success(self, mock_jira_client, sample_issue):
