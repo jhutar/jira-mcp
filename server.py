@@ -10,7 +10,7 @@ from fastmcp import FastMCP
 from fastapi import HTTPException
 import json
 
-## Custom fields IDs
+# Custom fields IDs
 QA_CONTACT_FID = "customfield_12315948"
 
 # ─── 1. Load environment variables ─────────────────────────────────────────────
